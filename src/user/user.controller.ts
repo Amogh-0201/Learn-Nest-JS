@@ -1,9 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User, UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
+
+    constructor(private readonly userService: UserService) {}
 
     // @Get('all')    // GET /user/all
     // @Get(':id')    // GET  /user/:id  - dynamic segment
@@ -14,39 +17,27 @@ export class UserController {
     // ****** ALWAYS PUT THE STATIC ROUTES ABOVE THE DYNAMIC ROUTE ******
     // get /user
     @Get()
-    getUser(@Query('name') name: string) {
-        const users = [
-            {id: 1, name: "John Doe"},
-            {id: 2, name: "Amogh"}
-        ];
-
-        if(name) {
-            return users.filter((user) =>
-                user.name.toLowerCase().includes(name.toLowerCase()),
-            );
-        }
-
-        return users;
+    getUser(@Query('name') name: string): User[] {
+        return this.userService.findAllusers(name);
     }
 
     @Get(':id')
-    getUserById(@Param('id') id: number) {
-        return {id, name: 'John Doe'};
+    getUserById(@Param('id') id: number): User | {} {
+        return this.userService.findOneUser(Number(id));
     }
 
     @Post()
-    createUser(@Body() createUserDto: CreateUserDto) {
-        return {
-            data: createUserDto,
-            message: `user with name ${createUserDto.name} created successfully`
-        };
+    createUser(@Body() createUserDto: CreateUserDto): User | {} {
+        return this.userService.createUser(createUserDto);
     }
 
     @Patch(':id')
     updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-        return {
-            data: { id, ...updateUserDto},
-            message: "user updated successfully"
-        };
+        return this.userService.updateUser(Number(id), updateUserDto);
+    }
+
+    @Delete(':id')
+    deleteUser(@Param('id') id: string) {
+        return this.userService.deleteUser(Number(id));
     }
 }
